@@ -2,6 +2,7 @@ import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
+
 const getDefaultState = () => {
   return {
     token: getToken(),
@@ -24,6 +25,9 @@ const mutations = {
   },
   SET_AVATAR: (state, avatar) => {
     state.avatar = avatar
+  },
+  SET_PERMISSIONS: (state, permissions) => {
+    state.permissions = permissions
   }
 }
 
@@ -49,32 +53,13 @@ const actions = {
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
-        debugger
         const { data } = response
-
         if (!data) {
           return reject('Verification failed, please Login again.')
         }
-
-        const { name, avatar , user } = data
-
+        const { name, avatar , user  } = data
         commit('SET_NAME', user.userName)
         commit('SET_AVATAR', avatar)
-        debugger
-        // ⭐️ 关键：获取用户权限后，触发动态路由生成
-        dispatch('permission/generateRoutes', permissions, { root: true })
-            .then(accessedRoutes => {
-              // ⭐️ 关键：将动态路由添加到路由器
-              accessedRoutes.forEach(route => {
-                router.addRoute(route)
-              })
-              
-              // ⭐️ 关键：如果当前路由不在新生成的路由中，需要重定向
-              const currentRoute = router.currentRoute
-              if (currentRoute.name && !router.hasRoute(currentRoute.name)) {
-                router.push('/404')
-        }
-          })
         resolve(data)
       }).catch(error => {
         reject(error)

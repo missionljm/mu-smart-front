@@ -12,7 +12,7 @@ import store from '@/store';
 
 
 export default {
-  name: 'Dashboard',
+  name: 'fund',
   computed: {
     ...mapGetters([
       'name'

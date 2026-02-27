@@ -33,8 +33,10 @@ router.beforeEach(async(to, from, next) => {
         try {
           // get user info
           await store.dispatch('user/getInfo')
-          // await store.dispatch('permission/generateRoutes')
-          next()
+          // 生成并添加动态路由
+          await store.dispatch('permission/generateRoutes')
+          // 添加路由后验证
+          next({ ...to, replace: true })
         } catch (error) {
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')

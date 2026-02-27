@@ -47,13 +47,23 @@ export const constantRoutes = [
     path: '/',
     component: Layout,
     redirect: '/dashboard',
+    name: '首页',
+    // meta: { title: '首页', icon: 'el-icon-s-home' },
     children: [{
-      path: 'dashboard',
+      path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: '首页', icon: 'dashboard' }
+      meta: { title: '首页', icon: 'el-icon-s-home' }
     }]
   },
+  // {
+  //   path: '/fund',
+  //   component: Layout,
+  //   hidden: false,
+  //   redirect: '/fund/person',
+  //   name: '资金管理',
+  //   meta: { title: '资金管理', icon: 'el-icon-s-help' },
+  // },
 
   // {
   //   path: '/example',
@@ -164,7 +174,12 @@ export const constantRoutes = [
   { path: '*', redirect: '/404', hidden: true }
 ]
 
-const createRouter = () => new Router({
+// 动态路由（需要权限控制的路由）
+export const asyncRoutes = [
+  // 这里留空，由后端接口返回或前端权限配置
+]
+
+var createRouter = () => new Router({
   // mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
@@ -177,5 +192,7 @@ export function resetRouter() {
   const newRouter = createRouter()
   router.matcher = newRouter.matcher // reset router
 }
+
+
 
 export default router
