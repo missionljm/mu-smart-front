@@ -3,20 +3,10 @@ import { constantRoutes } from '@/router'
 import Layout from '@/layout/index'
 import { getRouteConfig } from '@/api/permission'
 import router from '@/router'
-
-//后端返回的路由数据格式示例
-const backendRoutes = [
-    {
-      path: '/fund',
-      component: Layout,
-      hidden: false,
-      redirect: '/fund/person',
-      name: '资金管理',
-      meta: { title: '资金管理', icon: 'el-icon-s-help' },
-    }
-]
+import componentMap from './routeMap'
 
 // 将后端返回的路由数据转换为Vue Router格式
+// 使用路由表功能，将路由配置中的component字段替换为对应的组件导入函数
 function convertBackendRoute(backendRoute) {
   const route = { ...backendRoute }
   
@@ -29,9 +19,15 @@ function convertBackendRoute(backendRoute) {
   if (route.component === 'Layout') {
     route.component = Layout
   } else if (route.component && typeof route.component === 'string') {
-    // 动态导入组件
-    const componentPath = route.component.replace('@/', '')
-    route.component = () => import(`@/${componentPath}`)
+    var componentRes = route.component
+    console.log('返回的component为：' + componentRes)
+    // 查找对应的组件导入函数
+    if (componentMap[componentRes]) {
+      route.component = componentMap[componentRes]
+    } else {
+      // 如果没有找到，使用默认路径
+      route.component = () => import('@/views/dashboard/index.vue')
+    }
   }
   
   // 处理子路由

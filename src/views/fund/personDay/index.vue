@@ -1,14 +1,18 @@
 <template>
   <div class="dashboard-container">
-    <div class="dashboard-text">name: 你好，成功了</div>
+    <div class="dashboard-text">name: 这里是personDay</div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+import router from '@/router';
+import store from '@/store';
+
+
 
 export default {
-  name: 'home',
+  name: 'fund',
   computed: {
     ...mapGetters([
       'name'
@@ -16,6 +20,11 @@ export default {
   },
    mounted() {
     console.log(this.$route); // 输出当前路由对象
+    const staticRoutes = router.options.routes;
+    console.log(staticRoutes);
+    const routes = store.state.permission.routes; // 静态+动态路由
+   const addRoutes = store.state.permission.addRoutes; // 动态路由
+   console.log(routes, addRoutes)
   }
 }
 </script>
