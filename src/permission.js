@@ -32,7 +32,10 @@ router.beforeEach(async(to, from, next) => {
       } else {
         try {
           // get user info
-          await store.dispatch('user/getInfo')
+          await store.dispatch('user/getInfo').then(res => {
+            // 获取字典数据
+            store.dispatch('user/GetDict')
+          })
           // 生成并添加动态路由
           await store.dispatch('permission/generateRoutes')
           // 添加路由后验证
