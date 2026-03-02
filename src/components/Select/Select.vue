@@ -51,7 +51,7 @@ export default {
     },
     multipleLimit: {
       type: Number,
-      default: false
+      default: 0
     },
     collapsetags: {
       type: Boolean,

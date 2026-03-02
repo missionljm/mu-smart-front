@@ -4,7 +4,8 @@
 const componentMap = {
   'person/index': () => import('@/views/person/index.vue'),
   'fund/person/index': () => import('@/views/fund/person/index.vue'),
-  'fund/personDay/index': () => import('@/views/fund/personDay/index.vue')
+  'fund/personDay/index': () => import('@/views/fund/personDay/index.vue'),
+  'admin/person/index': () => import('@/views/admin/person/index.vue'),
 }
 
 export default componentMap
