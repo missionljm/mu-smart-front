@@ -30,3 +30,10 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function getDict() {
+  return request({
+    url: '/dealerDic/api/getDicMap',
+    method: 'get'
+  })
+}

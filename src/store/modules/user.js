@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, logout, getInfo,getDict } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
@@ -7,7 +7,9 @@ const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
-    avatar: ''
+    avatar: '',
+    dictMap: {},
+    permissions: ''
   }
 }
 
@@ -28,6 +30,9 @@ const mutations = {
   },
   SET_PERMISSIONS: (state, permissions) => {
     state.permissions = permissions
+  },
+  SET_DICTMAP: (state, map) => {
+      state.dictMap = map
   }
 }
 
@@ -80,6 +85,32 @@ const actions = {
       })
     })
   },
+
+  // 数据字典
+    GetDict({
+      commit
+    }) {
+      return new Promise((resolve, reject) => {
+        getDict().then(res => {
+          debugger
+          commit('SET_DICTMAP', res.data['dict'])
+          console.log("数据字典为：" + res.data['dict'])
+          resolve(res)
+        }).catch(error => {
+          reject(error)
+        })
+      })
+   },
+
+   // 设置数据字典
+    SetDictMap({
+      commit
+    }, dictMap) {
+      return new Promise(resolve => {
+        commit('SET_DICTMAP', dictMap)
+        resolve()
+      })
+    },
 
   // remove token
   resetToken({ commit }) {
