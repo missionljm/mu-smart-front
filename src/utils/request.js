@@ -19,10 +19,7 @@ service.interceptors.request.use(
       // let each request carry token
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
-      debugger
-      config.headers['Cookie'] = getToken()
-      console.log(config.headers['Cookie'])
-      // config.headers['Access-control-allow-origin'] = 'http://localhost:9528'
+      // config.headers['X-Token'] = getToken()
     }
     return config
   },
@@ -95,8 +92,19 @@ service.interceptors.response.use(
   error => {
     debugger
     console.log('err' + error) // for debug
+    // 处理后端返回的错误信息
+    let errorMessage = error.message
+    if (error.response && error.response.data) {
+      const res = error.response.data
+      if (res.status && res.status.msg) {
+        errorMessage = res.status.msg
+      } else if (res.message) {
+        errorMessage = res.message
+      }
+    }
+    this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     Message({
-      message: error.message,
+      message: errorMessage,
       type: 'error',
       duration: 5 * 1000
     })

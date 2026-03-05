@@ -1,134 +1,135 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="listQuery.title" placeholder="Title" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
-      <el-select v-model="listQuery.importance" placeholder="Imp" clearable style="width: 90px" class="filter-item">
-        <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item" />
-      </el-select>
-      <el-select v-model="listQuery.type" placeholder="Type" clearable class="filter-item" style="width: 130px">
-        <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name+'('+item.key+')'" :value="item.key" />
-      </el-select>
-      <el-select v-model="listQuery.sort" style="width: 140px" class="filter-item" @change="handleFilter">
-        <el-option v-for="item in sortOptions" :key="item.key" :label="item.label" :value="item.key" />
-      </el-select>
-      <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-        Search
-      </el-button>
-      <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">
-        Add
-      </el-button>
-      <el-button v-waves :loading="downloadLoading" class="filter-item" type="primary" icon="el-icon-download" @click="handleDownload">
-        Export
-      </el-button>
-      <el-checkbox v-model="showReviewer" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">
-        reviewer
-      </el-checkbox>
+      <el-form :label-position="labelPosition" label-width="80px" :model="listQuery">
+        <el-form-item label="用户代码">
+          <el-input v-model="listQuery.code" placeholder="Title" style="width: 200px;" class="filter-item"
+            @keyup.enter.native="handleFilter" />
+        </el-form-item>
+        <el-form-item label="用户名称">
+          <el-input v-model="listQuery.userName" placeholder="Title" style="width: 200px;" class="filter-item"
+            @keyup.enter.native="handleFilter" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="listQuery.phone" placeholder="Title" style="width: 200px;" class="filter-item"
+            @keyup.enter.native="handleFilter" />
+        </el-form-item>
+        <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
+          查询
+        </el-button>
+        <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit"
+          @click="handleCreate">
+          新增
+        </el-button>
+        <el-button v-waves :loading="downloadLoading" class="filter-item" type="primary" icon="el-icon-download"
+          @click="handleDownload">
+          导出
+        </el-button>
+      </el-form>
     </div>
-
-    <el-table
-      :key="tableKey"
-      v-loading="listLoading"
-      :data="list"
-      border
-      fit
-      highlight-current-row
-      style="width: 100%;"
-      @sort-change="sortChange"
-    >
-      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80" :class-name="getSortClass('id')">
+    <el-table :key="tableKey" v-loading="listLoading" :data="list" border fit highlight-current-row style="width: 100%;"
+      @sort-change="sortChange">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column type="index" label="序号" align="center" width="60"></el-table-column>
+      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80" v-if="false">
         <template slot-scope="{row}">
           <span>{{ row.id }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Date" width="150px" align="center">
+      <el-table-column label="用户头像" align="center" width="95">
         <template slot-scope="{row}">
-          <span>{{ row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+          <img v-if="row.avatar" :src="row.avatar" class="user-avatar" />
+          <el-avatar v-else size="small">{{ row.userName && row.userName.charAt(0) || 'U' }}</el-avatar>
         </template>
       </el-table-column>
-      <el-table-column label="Title" min-width="150px">
+      <el-table-column label="用户账号" min-width="100" max-width="180" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
-          <span class="link-type" @click="handleUpdate(row)">{{ row.title }}</span>
-          <el-tag>{{ row.type | typeFilter }}</el-tag>
+          <span>{{ row.userAccount }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Author" width="110px" align="center">
+      <el-table-column label="用户名" min-width="100" max-width="180" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
-          <span>{{ row.author }}</span>
+          <span>{{ row.userName }}</span>
         </template>
       </el-table-column>
-      <el-table-column v-if="showReviewer" label="Reviewer" width="110px" align="center">
+      <el-table-column label="创建时间" min-width="150" max-width="200" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
-          <span style="color:red;">{{ row.reviewer }}</span>
+          <span>{{ row.createTime | parseTime('{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Imp" width="80px">
+      <el-table-column label="手机号" min-width="100" max-width="150" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
-          <svg-icon v-for="n in + row.importance" :key="n" icon-class="star" class="meta-item__icon" />
+          <span style="color:red;">{{ row.phone }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Readings" align="center" width="95">
+      <el-table-column label="公司" min-width="100" max-width="200" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
-          <span v-if="row.pageviews" class="link-type" @click="handleFetchPv(row.pageviews)">{{ row.pageviews }}</span>
-          <span v-else>0</span>
+          <span>{{ row.company }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Status" class-name="status-col" width="100">
+      <el-table-column label="邮箱" min-width="150" max-width="250" align="center" show-overflow-tooltip>
         <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
+          <span>{{ row.email }}</span>
+        </template>
+      </el-table-column>
+      <!-- <el-table-column label="Imp" width="80px">
+        <template slot-scope="{row}">
+          <svg-icon v-for="n in (Number(row.importance) || 0)" :key="n" icon-class="star" class="meta-item__icon" />
+        </template>
+      </el-table-column> -->
+      <el-table-column label="状态" class-name="status-col" width="100">
+        <template slot-scope="{row}">
+          <el-tag :type="row.deleted | statusFilter">
+            {{ row.deleted | statusText }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="Actions" align="center" width="230" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="230" class-name="small-padding fixed-width">
         <template slot-scope="{row,$index}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             Edit
           </el-button>
-          <el-button v-if="row.status!='published'" size="mini" type="success" @click="handleModifyStatus(row,'published')">
+          <el-button v-if="row.status != 'published'" size="mini" type="success"
+            @click="handleModifyStatus(row, 'published')">
             Publish
           </el-button>
-          <el-button v-if="row.status!='draft'" size="mini" @click="handleModifyStatus(row,'draft')">
+          <el-button v-if="row.status != 'draft'" size="mini" @click="handleModifyStatus(row, 'draft')">
             Draft
           </el-button>
-          <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row,$index)">
+          <el-button v-if="row.status != 'deleted'" size="mini" type="danger" @click="handleDelete(row, $index)">
             Delete
           </el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+    <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
+      @pagination="getList" />
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
-        <el-form-item label="Type" prop="type">
-          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
-          </el-select>
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="right" label-width="100px" style="width: 400px; margin-left:50px;">
+        <el-form-item label="用户昵称" prop="type">
+          <el-input v-model="temp.userName" placeholder="请输入用户昵称"/>
         </el-form-item>
-        <el-form-item label="Date" prop="timestamp">
-          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />
+         <el-form-item label="phone">
+          <el-input v-model="temp.phone" placeholder="电话号码" />
         </el-form-item>
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="temp.title" />
+        <el-form-item label="用户邮箱" prop="title">
+          <el-input v-model="temp.email" placeholder="请输入用户邮箱" />
         </el-form-item>
-        <el-form-item label="Status">
-          <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item" />
-          </el-select>
+        <el-form-item label="公司">
+            <el-input v-model="temp.company" placeholder="请输入公司名称" />
         </el-form-item>
-        <el-form-item label="Imp">
-          <el-rate v-model="temp.importance" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;" />
-        </el-form-item>
-        <el-form-item label="Remark">
-          <el-input v-model="temp.remark" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="Please input" />
+        <el-form-item label="个人简介">
+            <el-input v-model="temp.profile" type="textarea" :autosize="{ minRows: 3, maxRows: 5 }" placeholder="请输入个人简介" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
           Cancel
         </el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">
+        <el-button type="primary" @click="dialogStatus === 'create' ? createData() : updateData()">
           Confirm
         </el-button>
       </div>
@@ -151,6 +152,8 @@
 import waves from '@/directive/waves' // waves directive
 import { parseTime } from '@/utils'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+import rSelect from '@/components/Select/Select';
+import { getUserList } from '@/api/admin/person/user'
 
 const calendarTypeOptions = [
   { key: 'CN', display_name: 'China' },
@@ -167,16 +170,22 @@ const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
 
 export default {
   name: 'ComplexTable',
-  components: { Pagination },
+  components: { Pagination, rSelect },
   directives: { waves },
   filters: {
     statusFilter(status) {
       const statusMap = {
-        published: 'success',
-        draft: 'info',
-        deleted: 'danger'
+        0: 'published',
+        1: 'danger'
       }
       return statusMap[status]
+    },
+    statusText(status) {
+      const statusTextMap = {
+        0: 'published',
+        1: 'danger'
+      }
+      return statusTextMap[status] || status
     },
     typeFilter(type) {
       return calendarTypeKeyValue[type]
@@ -191,13 +200,10 @@ export default {
       listQuery: {
         page: 1,
         limit: 20,
-        importance: undefined,
-        title: undefined,
-        type: undefined,
-        sort: '+id'
+        code: null,
+        userName: null,
+        phone: null
       },
-      importanceOptions: [1, 2, 3],
-      calendarTypeOptions,
       sortOptions: [{ label: 'ID Ascending', key: '+id' }, { label: 'ID Descending', key: '-id' }],
       statusOptions: ['published', 'draft', 'deleted'],
       showReviewer: false,
@@ -213,8 +219,8 @@ export default {
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
-        update: 'Edit',
-        create: 'Create'
+        update: '编辑',
+        create: '新增'
       },
       dialogPvVisible: false,
       pvData: [],
@@ -231,16 +237,24 @@ export default {
   },
   methods: {
     getList() {
-    //   this.listLoading = true
-    //   fetchList(this.listQuery).then(response => {
-    //     this.list = response.data.items
-    //     this.total = response.data.total
+      getUserList(this.listQuery).then(response => {
+        console.log(response.data)
+        this.list = response.data.records
+        this.total = response.data.current
+        setTimeout(() => {
+          this.listLoading = false
+        }, 1.5 * 1000)
+      })
+      //   this.listLoading = true
+      //   fetchList(this.listQuery).then(response => {
+      //     this.list = response.data.items
+      //     this.total = response.data.total
 
-    //     // Just to simulate the time of the request
-    //     setTimeout(() => {
-    //       this.listLoading = false
-    //     }, 1.5 * 1000)
-    //   })
+      //     // Just to simulate the time of the request
+      //     setTimeout(() => {
+      //       this.listLoading = false
+      //     }, 1.5 * 1000)
+      //   })
     },
     handleFilter() {
       this.listQuery.page = 1
@@ -287,22 +301,22 @@ export default {
       })
     },
     createData() {
-    //   this.$refs['dataForm'].validate((valid) => {
-    //     if (valid) {
-    //       this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-    //       this.temp.author = 'vue-element-admin'
-    //       createArticle(this.temp).then(() => {
-    //         this.list.unshift(this.temp)
-    //         this.dialogFormVisible = false
-    //         this.$notify({
-    //           title: 'Success',
-    //           message: 'Created Successfully',
-    //           type: 'success',
-    //           duration: 2000
-    //         })
-    //       })
-    //     }
-    //   })
+      this.$refs['dataForm'].validate((valid) => {
+        if (valid) {
+          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
+          this.temp.author = 'vue-element-admin'
+          createArticle(this.temp).then(() => {
+            this.list.unshift(this.temp)
+            this.dialogFormVisible = false
+            this.$notify({
+              title: 'Success',
+              message: 'Created Successfully',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row) // copy obj
@@ -314,23 +328,23 @@ export default {
       })
     },
     updateData() {
-    //   this.$refs['dataForm'].validate((valid) => {
-    //     if (valid) {
-    //       const tempData = Object.assign({}, this.temp)
-    //       tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-    //       updateArticle(tempData).then(() => {
-    //         const index = this.list.findIndex(v => v.id === this.temp.id)
-    //         this.list.splice(index, 1, this.temp)
-    //         this.dialogFormVisible = false
-    //         this.$notify({
-    //           title: 'Success',
-    //           message: 'Update Successfully',
-    //           type: 'success',
-    //           duration: 2000
-    //         })
-    //       })
-    //     }
-    //   })
+      //   this.$refs['dataForm'].validate((valid) => {
+      //     if (valid) {
+      //       const tempData = Object.assign({}, this.temp)
+      //       tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
+      //       updateArticle(tempData).then(() => {
+      //         const index = this.list.findIndex(v => v.id === this.temp.id)
+      //         this.list.splice(index, 1, this.temp)
+      //         this.dialogFormVisible = false
+      //         this.$notify({
+      //           title: 'Success',
+      //           message: 'Update Successfully',
+      //           type: 'success',
+      //           duration: 2000
+      //         })
+      //       })
+      //     }
+      //   })
     },
     handleDelete(row, index) {
       this.$notify({
@@ -342,10 +356,10 @@ export default {
       this.list.splice(index, 1)
     },
     handleFetchPv(pv) {
-    //   fetchPv(pv).then(response => {
-    //     this.pvData = response.data.pvData
-    //     this.dialogPvVisible = true
-    //   })
+      //   fetchPv(pv).then(response => {
+      //     this.pvData = response.data.pvData
+      //     this.dialogPvVisible = true
+      //   })
     },
     handleDownload() {
       this.downloadLoading = true
@@ -370,10 +384,59 @@ export default {
         }
       }))
     },
-    getSortClass: function(key) {
+    getSortClass: function (key) {
       const sort = this.listQuery.sort
       return sort === `+${key}` ? 'ascending' : 'descending'
     }
   }
 }
 </script>
+
+<style scoped>
+.app-container {
+  padding: 20px;
+}
+
+.filter-container {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.el-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.el-form-item {
+  margin-right: 20px;
+  margin-bottom: 0;
+}
+
+.fixed-width {
+  width: 120px;
+}
+
+.small-padding {
+  padding: 0 5px;
+}
+
+.status-col {
+  width: 100px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+</style>

@@ -21,6 +21,9 @@ export function parseTime(time, cFormat) {
       if ((/^[0-9]+$/.test(time))) {
         // support "1548221490638"
         time = parseInt(time)
+      } else if ((/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(time))) {
+        // support various ISO 8601 format
+        // No need to replace '-' with '/' for ISO 8601 format
       } else {
         // support safari
         // https://stackoverflow.com/questions/4310953/invalid-date-in-safari
@@ -32,6 +35,10 @@ export function parseTime(time, cFormat) {
       time = time * 1000
     }
     date = new Date(time)
+  }
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return null
   }
   const formatObj = {
     y: date.getFullYear(),
