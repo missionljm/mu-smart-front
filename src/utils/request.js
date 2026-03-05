@@ -2,6 +2,7 @@ import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
+import router from '@/router'
 
 // create an axios instance
 const service = axios.create({
@@ -102,7 +103,8 @@ service.interceptors.response.use(
         errorMessage = res.message
       }
     }
-    this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    // 跳转到登录页面
+    router.push('/login')
     Message({
       message: errorMessage,
       type: 'error',

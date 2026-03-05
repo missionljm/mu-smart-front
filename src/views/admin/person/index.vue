@@ -88,17 +88,17 @@
       <el-table-column label="操作" align="center" width="230" class-name="small-padding fixed-width">
         <template slot-scope="{row,$index}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
-            Edit
+            编辑
           </el-button>
-          <el-button v-if="row.status != 'published'" size="mini" type="success"
+          <el-button v-if="row.deleted != 0" size="mini" type="success"
             @click="handleModifyStatus(row, 'published')">
-            Publish
+            启用
           </el-button>
-          <el-button v-if="row.status != 'draft'" size="mini" @click="handleModifyStatus(row, 'draft')">
-            Draft
+          <el-button v-else  size="mini" @click="handleModifyStatus(row, 'draft')">
+            停用
           </el-button>
-          <el-button v-if="row.status != 'deleted'" size="mini" type="danger" @click="handleDelete(row, $index)">
-            Delete
+          <el-button size="mini" type="danger" @click="handleDelete(row, $index)">
+            删除
           </el-button>
         </template>
       </el-table-column>
@@ -108,29 +108,32 @@
       @pagination="getList" />
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="right" label-width="100px" style="width: 400px; margin-left:50px;">
-        <el-form-item label="用户昵称" prop="type">
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="right" label-width="100px" style="width: 400px; margin-left:50px;" class="dialog-form">
+        <el-form-item label="用户id" prop="type" v-if="false">
+          <el-input v-model="temp.id" placeholder="用户id"/>
+        </el-form-item>
+        <el-form-item label="用户姓名" prop="userName">
           <el-input v-model="temp.userName" placeholder="请输入用户昵称"/>
         </el-form-item>
-         <el-form-item label="phone">
-          <el-input v-model="temp.phone" placeholder="电话号码" />
+         <el-form-item label="电话号码" prop="phone">
+          <el-input v-model="temp.phone" placeholder="请输入电话号码" />
         </el-form-item>
-        <el-form-item label="用户邮箱" prop="title">
+        <el-form-item label="用户邮箱" prop="email">
           <el-input v-model="temp.email" placeholder="请输入用户邮箱" />
         </el-form-item>
-        <el-form-item label="公司">
+        <el-form-item label="公司" prop="company">
             <el-input v-model="temp.company" placeholder="请输入公司名称" />
         </el-form-item>
-        <el-form-item label="个人简介">
+        <el-form-item label="个人简介" prop="profile">
             <el-input v-model="temp.profile" type="textarea" :autosize="{ minRows: 3, maxRows: 5 }" placeholder="请输入个人简介" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
-          Cancel
+          取消
         </el-button>
         <el-button type="primary" @click="dialogStatus === 'create' ? createData() : updateData()">
-          Confirm
+          确认
         </el-button>
       </div>
     </el-dialog>
@@ -153,7 +156,7 @@ import waves from '@/directive/waves' // waves directive
 import { parseTime } from '@/utils'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 import rSelect from '@/components/Select/Select';
-import { getUserList } from '@/api/admin/person/user'
+import { getUserList , addUser} from '@/api/admin/person/user'
 
 const calendarTypeOptions = [
   { key: 'CN', display_name: 'China' },
@@ -197,6 +200,7 @@ export default {
       list: null,
       total: 0,
       listLoading: true,
+      labelPosition: 'left',
       listQuery: {
         page: 1,
         limit: 20,
@@ -209,12 +213,11 @@ export default {
       showReviewer: false,
       temp: {
         id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        type: '',
-        status: 'published'
+        userName: null,
+        phone: null,
+        email: null,
+        company: null,
+        profile: null
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -225,9 +228,9 @@ export default {
       dialogPvVisible: false,
       pvData: [],
       rules: {
-        type: [{ required: true, message: 'type is required', trigger: 'change' }],
-        timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
-        title: [{ required: true, message: 'title is required', trigger: 'blur' }]
+        userName: [{ required: true, message: '用户名是必填项', trigger: 'blur' }],
+        phone: [{ required: true, message: '电话号码是必填项', trigger: 'blur' }],
+        email: [{ required: true, message: '邮箱是必填项', trigger: 'blur' }]
       },
       downloadLoading: false
     }
@@ -237,10 +240,11 @@ export default {
   },
   methods: {
     getList() {
+      this.listLoading = true
       getUserList(this.listQuery).then(response => {
         console.log(response.data)
         this.list = response.data.records
-        this.total = response.data.current
+        this.total = response.data.total
         setTimeout(() => {
           this.listLoading = false
         }, 1.5 * 1000)
@@ -284,12 +288,11 @@ export default {
     resetTemp() {
       this.temp = {
         id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        status: 'published',
-        type: ''
+        userName: null,
+        phone: null,
+        email: null,
+        company: null,
+        profile: null
       }
     },
     handleCreate() {
@@ -303,15 +306,33 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-          this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
+          addUser(this.temp).then(res => {
+            console.log("新增用户响应:", res.data)
+            debugger
+            if (res.data === 'success') {
+              // this.list.unshift(this.temp)
+              this.dialogFormVisible = false
+              this.$notify({
+                title: 'Success',
+                message: '新增成功',
+                type: 'success',
+                duration: 2000
+              })
+            } else {
+              this.$notify({
+                title: 'Error',
+                message: res.data.status.msg || '新增失败',
+                type: 'error',
+                duration: 2000
+              })
+            }
+          }).catch(error => {
+            debugger
+            console.error('新增用户失败:', error)
             this.$notify({
-              title: 'Success',
-              message: 'Created Successfully',
-              type: 'success',
+              title: 'Error',
+              message: '新增失败，请稍后重试',
+              type: 'error',
               duration: 2000
             })
           })
@@ -328,23 +349,18 @@ export default {
       })
     },
     updateData() {
-      //   this.$refs['dataForm'].validate((valid) => {
-      //     if (valid) {
-      //       const tempData = Object.assign({}, this.temp)
-      //       tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-      //       updateArticle(tempData).then(() => {
-      //         const index = this.list.findIndex(v => v.id === this.temp.id)
-      //         this.list.splice(index, 1, this.temp)
-      //         this.dialogFormVisible = false
-      //         this.$notify({
-      //           title: 'Success',
-      //           message: 'Update Successfully',
-      //           type: 'success',
-      //           duration: 2000
-      //         })
-      //       })
-      //     }
-      //   })
+      this.$refs['dataForm'].validate((valid) => {
+        if (valid) {
+          // 这里应该调用更新用户的 API
+          this.dialogFormVisible = false
+          this.$notify({
+            title: 'Success',
+            message: '更新成功',
+            type: 'success',
+            duration: 2000
+          })
+        }
+      })
     },
     handleDelete(row, index) {
       this.$notify({
@@ -438,5 +454,25 @@ export default {
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.dialog-form .el-form-item {
+  margin-bottom: 20px;
+}
+
+/* 操作列按钮样式 */
+.fixed-width .el-button {
+  margin: 4px;
+  flex: 0 0 auto;
+}
+
+/* 确保按钮在换行时也能正确排列 */
+.fixed-width {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+  min-height: 80px;
 }
 </style>

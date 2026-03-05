@@ -8,3 +8,12 @@ export function getUserList(data) {
         params: data
     })
 }
+
+export function addUser(data) {
+    const url = '/getUser/api/addUser'
+    return request({
+        url: url,
+        method: 'post',
+        data: data
+    })
+}
