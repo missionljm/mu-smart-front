@@ -17,3 +17,12 @@ export function addUser(data) {
         data: data
     })
 }
+
+export function modifyUser(data) {
+    const url = '/getUser/api/modifyUser'
+    return request({
+        url: url,
+        method: 'post',
+        data: data
+    })
+}

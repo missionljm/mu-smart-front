@@ -203,7 +203,7 @@ export default {
       labelPosition: 'left',
       listQuery: {
         page: 1,
-        limit: 20,
+        limit: 10,
         code: null,
         userName: null,
         phone: null
@@ -229,8 +229,12 @@ export default {
       pvData: [],
       rules: {
         userName: [{ required: true, message: '用户名是必填项', trigger: 'blur' }],
-        phone: [{ required: true, message: '电话号码是必填项', trigger: 'blur' }],
-        email: [{ required: true, message: '邮箱是必填项', trigger: 'blur' }]
+        phone: [
+          { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+        ],
+        email: [{ required: true, message: '邮箱是必填项', trigger: 'blur' },
+          { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+        ]
       },
       downloadLoading: false
     }
